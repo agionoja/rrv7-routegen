@@ -1,0 +1,33 @@
+{
+  "name": "rrv7-routegen",
+  "version": "0.1.0",
+  "description": "Generate and watch routeFile helper for React Router apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "routegen": "./bin/routegen.ts"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun run src/index.ts"
+  },
+  "keywords": [
+    "react-router",
+    "route generator",
+    "cli"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {}
+}
