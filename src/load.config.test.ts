@@ -1,5 +1,5 @@
 // src/load-config.test.ts
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { loadConfig } from "./load-config";
 import fs from "fs/promises";
 import path from "path";
@@ -26,10 +26,11 @@ describe("loadConfig", () => {
     });
   });
 
-  test("loads config from .routegenrc.js", async () => {
+  test("loads config from routegen.config.ts", async () => {
     await fs.writeFile(
-      path.join(TMP, ".routegenrc.js"),
-      'module.exports = { routeDir: "custom/routes" };',
+      path.join(TMP, "routegen.config.ts"),
+      `import { routeConfig } from "../src/load-config";
+       export default routeConfig({ routeDir: "custom/routes" });`,
     );
     const config = await loadConfig();
     expect(config.routeDir).toBe("custom/routes");
@@ -37,8 +38,9 @@ describe("loadConfig", () => {
 
   test("overrides with CLI args", async () => {
     await fs.writeFile(
-      path.join(TMP, ".routegenrc.js"),
-      'module.exports = { routeDir: "custom/routes" };',
+      path.join(TMP, "routegen.config.ts"),
+      `import { routeConfig } from "../src/load-config";
+       export default routeConfig({ routeDir: "custom/routes" });`,
     );
     const config = await loadConfig({ routeDir: "cli/routes" });
     expect(config.routeDir).toBe("cli/routes");

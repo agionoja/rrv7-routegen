@@ -5,6 +5,15 @@ import { isRouteModule } from "./route-detection";
 import { loadConfig } from "./load-config";
 import type { RoutegenConfig } from "./types";
 
+// ANSI color codes
+const COLORS = {
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  red: "\x1b[31m",
+  yellow: "\x1b[33m",
+  reset: "\x1b[0m",
+};
+
 interface FileEntry {
   routeKey: string;
   importPath: string;
@@ -28,7 +37,7 @@ export async function runGeneration(
     );
 
     // Analyze each file to determine if it's a route module
-    console.log("🔍 Analyzing route files...");
+    console.log(`${COLORS.cyan}🔎 Scanning route files...${COLORS.reset}`);
     for (const abs of tsFiles) {
       const isRoute = await isRouteModule(abs);
       if (isRoute) {
@@ -43,7 +52,7 @@ export async function runGeneration(
 
     const typeUnion = fileEntries.map((e) => `  | "${e.routeKey}"`).join("\n");
     const cases = fileEntries
-      .map((e) => `    case \"${e.routeKey}\": return \"${e.importPath}\";`)
+      .map((e) => `    case "${e.routeKey}": return "${e.importPath}";`)
       .join("\n");
 
     const content =
@@ -55,15 +64,22 @@ export async function runGeneration(
     await fs.mkdir(OUTPUT_DIR, { recursive: true });
     await fs.writeFile(OUTPUT_PATH, content, "utf8");
 
-    console.log(`✅ Generated ${OUTPUT_PATH}`);
-    console.log(`📦 Found ${fileEntries.length} route modules`);
+    const outputRelPath = `${config.outDir}/${config.outputFileName}`;
+    console.log(`${COLORS.green}✅ Generated ${outputRelPath}${COLORS.reset}`);
+    console.log(
+      `${COLORS.yellow}📋 Found ${fileEntries.length} route module${fileEntries.length === 1 ? "" : "s"}:${COLORS.reset}`,
+    );
     fileEntries.forEach((e) =>
-      console.log(`   • ${e.routeKey} → ${e.importPath}`),
+      console.log(
+        `  ${COLORS.green}• ${e.routeKey} → ${e.importPath}${COLORS.reset}`,
+      ),
     );
 
     return fileEntries;
   } catch (error) {
-    console.error(`❌ Error generating routes:`, error);
+    console.error(
+      `${COLORS.red}❌ Error generating routes: ${error}${COLORS.reset}`,
+    );
     return [];
   }
 }
@@ -79,7 +95,9 @@ async function walk(dir: string): Promise<string[]> {
     );
     return files.flat();
   } catch (error) {
-    console.error(`Error walking directory ${dir}:`, error);
+    console.error(
+      `${COLORS.red}❌ Error walking directory ${dir}: ${error}${COLORS.reset}`,
+    );
     return [];
   }
 }

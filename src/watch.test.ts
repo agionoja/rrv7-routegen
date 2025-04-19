@@ -1,7 +1,7 @@
 // src/watch.test.ts
-import { expect, test, describe, mock, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { runWatchMode } from "./watch";
-import chokidar from "chokidar";
+import path from "path";
 
 // Type for the mocked chokidar watcher
 interface MockWatcher {
@@ -35,14 +35,14 @@ const mockSpawn = mock(() => ({
 
 // Mock child_process.execSync
 const mockExecSync = mock((cmd: string): string => {
-  if (cmd === "bun --version") throw new Error("Command not found");
+  if (cmd === "bun --version") return "1.0.0"; // Simulate Bun present
   return "version";
 });
 
 // Mock fs.accessSync
 const mockAccessSync = mock((p: string): void => {
-  if (p === "yarn.lock") return;
-  throw new Error("File not found");
+  if (p === "yarn.lock") throw new Error("File not found"); // No yarn.lock
+  if (p === "pnpm-lock.yaml") throw new Error("File not found"); // No pnpm
 });
 
 // Mock console.log
@@ -85,13 +85,13 @@ describe("Watch Mode", () => {
 
   test("should start watching app/routes directory", async () => {
     await runWatchMode();
-
-    expect(mockChokidarWatch).toHaveBeenCalledWith("app/routes", {
+    const expectedDir = path.resolve(process.cwd(), "app/routes");
+    expect(mockChokidarWatch).toHaveBeenCalledWith(expectedDir, {
       ignoreInitial: true,
       persistent: true,
     });
     expect(mockConsoleLog).toHaveBeenCalledWith(
-      expect.stringContaining("Watching"),
+      expect.stringContaining("Watching app/routes"),
     );
   });
 
@@ -100,19 +100,33 @@ describe("Watch Mode", () => {
 
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {
-      handlers["all"]("add", "app/routes/new-route.tsx");
+      handlers["all"](
+        "add",
+        path.join(process.cwd(), "app/routes/new-route.tsx"),
+      );
     } else {
       throw new Error("handlers['all'] is not a function");
     }
 
-    // Wait briefly for debounce (simulated)
+    // Wait for debounce
     await new Promise((resolve) => setTimeout(resolve, 250));
 
-    expect(mockSpawn).toHaveBeenCalledWith("yarn", ["generate:routes"], {
-      stdio: "inherit",
-    });
+    expect(mockSpawn).toHaveBeenCalledWith(
+      "bun",
+      [
+        "x",
+        "rrv7-routegen",
+        "generate",
+        "--route-dir=app/routes",
+        "--out-dir=.routegen",
+        "--output-file-name=route-file.ts",
+      ],
+      {
+        stdio: "inherit",
+      },
+    );
     expect(mockConsoleLog).toHaveBeenCalledWith(
-      expect.stringContaining("ADD:"),
+      expect.stringContaining("ADD: app/routes/new-route.tsx"),
     );
   });
 
@@ -121,7 +135,10 @@ describe("Watch Mode", () => {
 
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {
-      handlers["all"]("change", "app/routes/ignored.tsx");
+      handlers["all"](
+        "raw",
+        path.join(process.cwd(), "app/routes/ignored.tsx"),
+      );
     } else {
       throw new Error("handlers['all'] is not a function");
     }
@@ -129,9 +146,6 @@ describe("Watch Mode", () => {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     expect(mockSpawn).not.toHaveBeenCalled();
-    expect(mockConsoleLog).not.toHaveBeenCalledWith(
-      expect.stringContaining("CHANGE:"),
-    );
   });
 
   test("should debounce multiple events", async () => {
@@ -140,8 +154,8 @@ describe("Watch Mode", () => {
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {
       // Simulate rapid events
-      handlers["all"]("add", "app/routes/first.tsx");
-      handlers["all"]("add", "app/routes/second.tsx");
+      handlers["all"]("add", path.join(process.cwd(), "app/routes/first.tsx"));
+      handlers["all"]("add", path.join(process.cwd(), "app/routes/second.tsx"));
     } else {
       throw new Error("handlers['all'] is not a function");
     }
@@ -150,7 +164,10 @@ describe("Watch Mode", () => {
 
     expect(mockSpawn).toHaveBeenCalledTimes(1);
     expect(mockConsoleLog).toHaveBeenCalledWith(
-      expect.stringContaining("ADD:"),
+      expect.stringContaining("ADD: app/routes/first.tsx"),
+    );
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      expect.stringContaining("ADD: app/routes/second.tsx"),
     );
   });
 });

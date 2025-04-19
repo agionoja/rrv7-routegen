@@ -169,27 +169,27 @@ export function routeFile(path: RouteFilePath) {
 Use the generated helper in your React Router v7 configuration:
 
 ```tsx
-// routes.config.ts
-import { routeFile } from ".routegen/route-file";
-import { createBrowserRouter } from "react-router-dom";
+// routes.ts
+import {
+   type RouteConfig,
+   index,
+   route,
+   prefix,
+   layout,
+} from "@react-router/dev/routes";
+import { routeFile } from "./routes-file";
 
-export const router = createBrowserRouter([
-   {
-      path: "/",
-      element: routeFile("home"),
-   },
-   {
-      path: "/comments",
-      children: [
-         { index: true, element: routeFile("comments/index") },
-         { path: ":id", element: routeFile("comments/details") },
-      ],
-   },
-   {
-      path: "/settings",
-      element: routeFile("settings"),
-   },
-]);
+export default [
+   index(routeFile("home")),
+   route("playground", routeFile("playground")),
+   layout(routeFile("account/user/layout"), [
+      route("user", routeFile("account/user/user"), [
+         route("dashboard", routeFile("account/user/dashboard/index")),
+      ]),
+   ]),
+   ...prefix("comments", [route("", routeFile("comments"))]),
+] satisfies RouteConfig;
+
 ```
 
 ### Programmatic Usage

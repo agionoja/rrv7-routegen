@@ -1,5 +1,5 @@
 // src/route-detection.test.ts
-import { expect, test, describe, mock, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { isRouteModule } from "./route-detection";
 import fs from "fs/promises";
 

@@ -4,6 +4,14 @@ import { spawn } from "child_process";
 import path from "path";
 import { loadConfig, type ResolvedRoutegenConfig } from "./load-config";
 
+// ANSI color codes
+const COLORS = {
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  red: "\x1b[31m",
+  reset: "\x1b[0m",
+};
+
 const RELEVANT = new Set(["add", "addDir", "change", "unlink", "unlinkDir"]);
 
 export async function runWatchMode(
@@ -12,7 +20,9 @@ export async function runWatchMode(
   const config = await loadConfig(cliArgs);
   const ROUTES_DIR = path.resolve(process.cwd(), config.routeDir);
 
-  console.log(`👀 Watching ${ROUTES_DIR} for route file changes...`);
+  console.log(
+    `${COLORS.cyan}🚀 Watching ${config.routeDir} for route changes...${COLORS.reset}`,
+  );
   const watcher = chokidar.watch(ROUTES_DIR, {
     ignoreInitial: true,
     persistent: true,
@@ -21,15 +31,20 @@ export async function runWatchMode(
 
   watcher.on("all", (event, filePath) => {
     if (!RELEVANT.has(event)) return;
-    const rel = path.relative(process.cwd(), filePath);
-    console.log(`📦 ${event.toUpperCase()}: ${rel}`);
+    const rel = path.relative(process.cwd(), filePath).replace(/\\/g, "/");
+    console.log(
+      `${COLORS.green}📬 ${event.toUpperCase()}: ${rel}${COLORS.reset}`,
+    );
 
     clearTimeout(timer);
     timer = setTimeout(() => {
       const cmd = detectPMCommand(config);
       const child = spawn(cmd.bin, cmd.args, { stdio: "inherit" });
       child.on("close", (code) => {
-        if (code !== 0) console.error(`❌ generate exited ${code}`);
+        if (code !== 0)
+          console.error(
+            `${COLORS.red}❌ Generation failed with code ${code}${COLORS.reset}`,
+          );
       });
     }, 200);
   });

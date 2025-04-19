@@ -1,6 +1,5 @@
 // src/route-detection.ts
 import fs from "fs/promises";
-import path from "path";
 import ts from "typescript";
 
 /**

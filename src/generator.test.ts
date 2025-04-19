@@ -1,5 +1,5 @@
 // src/generator.test.ts
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import fs from "fs/promises";
 import path from "path";
 import { runGeneration } from "./generator";
@@ -24,12 +24,28 @@ afterAll(async () => {
 });
 
 describe("runGeneration", () => {
-  it("generates correct route-file.ts and returns entries", async () => {
+  test("generates correct route-file.ts and returns entries", async () => {
     await setupFakeProjectStructure({
-      "home.tsx": `export default () => <></>;`,
-      "comments/index.tsx": `export default () => <></>;`,
+      "home.tsx": `
+        import React from 'react';
+        export default function Home() { return <div>Home</div>; }
+      `,
+      "comments/index.tsx": `
+        import React from 'react';
+        export default function Comments() { return <div>Comments</div>; }
+      `,
       "skip/util.ts": `export function helper() {}`,
     });
+
+    // Mock isRouteModule to ensure detection
+    mock.module("./route-detection", () => ({
+      isRouteModule: mock(async (filePath: string) => {
+        return (
+          filePath.includes("home.tsx") ||
+          filePath.includes("comments/index.tsx")
+        );
+      }),
+    }));
 
     const originalCwd = process.cwd();
     process.chdir(TMP);
