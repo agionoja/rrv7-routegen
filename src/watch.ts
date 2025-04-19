@@ -1,11 +1,19 @@
+// src/watch.ts
 import chokidar from "chokidar";
 import { spawn } from "child_process";
 import path from "path";
+import { loadConfig, type ResolvedRoutegenConfig } from "./load-config";
 
 const RELEVANT = new Set(["add", "addDir", "unlink", "unlinkDir"]);
-export function runWatchMode() {
-  console.log("👀 Watching app/routes for file add/delete...");
-  const watcher = chokidar.watch("app/routes", {
+
+export async function runWatchMode(
+  cliArgs: Partial<ResolvedRoutegenConfig> = {},
+) {
+  const config = await loadConfig(cliArgs);
+  const ROUTES_DIR = path.resolve(process.cwd(), config.routeDir);
+
+  console.log(`👀 Watching ${ROUTES_DIR} for file add/delete...`);
+  const watcher = chokidar.watch(ROUTES_DIR, {
     ignoreInitial: true,
     persistent: true,
   });
@@ -18,7 +26,7 @@ export function runWatchMode() {
 
     clearTimeout(timer);
     timer = setTimeout(() => {
-      const cmd = detectPMCommand();
+      const cmd = detectPMCommand(config);
       const child = spawn(cmd.bin, cmd.args, { stdio: "inherit" });
       child.on("close", (code) => {
         if (code !== 0) console.error(`❌ generate exited ${code}`);
@@ -27,13 +35,26 @@ export function runWatchMode() {
   });
 }
 
-function detectPMCommand(): { bin: string; args: string[] } {
-  // detect bun, yarn, npm
+function detectPMCommand(config: ResolvedRoutegenConfig): {
+  bin: string;
+  args: string[];
+} {
+  // Construct CLI arguments from config
+  const cliArgs = [
+    "generate",
+    `--route-dir=${config.routeDir}`,
+    `--out-dir=${config.outDir}`,
+    `--output-file-name=${config.outputFileName}`,
+  ];
+
+  // Detect bun, yarn, pnpm, or npm
   if (spawnExists("bun"))
-    return { bin: "bun", args: ["run", "generate:routes"] };
+    return { bin: "bun", args: ["x", "rrv7-routegen", ...cliArgs] };
   if (fsExistsSync("yarn.lock"))
-    return { bin: "yarn", args: ["generate:routes"] };
-  return { bin: "npm", args: ["run", "generate:routes"] };
+    return { bin: "yarn", args: ["run", "generate:routes"] }; // yarn doesn't support direct CLI args well
+  if (fsExistsSync("pnpm-lock.yaml"))
+    return { bin: "pnpm", args: ["exec", "rrv7-routegen", ...cliArgs] };
+  return { bin: "npx", args: ["rrv7-routegen", ...cliArgs] };
 }
 
 function spawnExists(cmd: string): boolean {

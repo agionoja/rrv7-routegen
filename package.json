@@ -5,15 +5,23 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "routegen": "./bin/routegen.ts"
+    "rrv7-routegen": "./dist/bin/routegen.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
   },
   "files": [
     "dist",
     "bin"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "bun run src/index.ts"
+    "build": "tsup src/index.ts --format cjs --dts",
+    "dev": "bun run src/index.ts",
+    "test": "bun test"
   },
   "keywords": [
     "react-router",
@@ -22,12 +30,16 @@
   ],
   "author": "Your Name",
   "license": "MIT",
+  "dependencies": {
+    "zod": "^3.23.8",
+    "commander": "^12.0.0",
+    "enquirer": "^2.4.1",
+    "typescript": "^5.0.0"
+  },
   "devDependencies": {
     "chokidar": "^4.0.3",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {}
+    "@types/bun": "latest",
+    "tsup": "^8.0.0",
+    "execa": "^9.0.0"
+  }
 }

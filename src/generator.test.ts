@@ -1,7 +1,8 @@
+// src/generator.test.ts
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import fs from "fs/promises";
 import path from "path";
-import { runGeneration } from "./generator.ts";
+import { runGeneration } from "./generator";
 
 const TMP = path.resolve("test-temp-gen");
 
@@ -31,7 +32,7 @@ describe("runGeneration", () => {
     });
 
     const originalCwd = process.cwd();
-    process.chdir(TMP); // This time it will work — TMP exists
+    process.chdir(TMP);
 
     const entries = await runGeneration();
     const keys = entries.map((e) => e.routeKey).sort();
@@ -46,6 +47,6 @@ describe("runGeneration", () => {
       `case "comments/index": return "./routes/comments/index.tsx";`,
     );
 
-    process.chdir(originalCwd); // Restore original working directory
+    process.chdir(originalCwd);
   });
 });

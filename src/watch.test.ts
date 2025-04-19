@@ -1,3 +1,4 @@
+// src/watch.test.ts
 import { expect, test, describe, mock, beforeEach, afterEach } from "bun:test";
 import { runWatchMode } from "./watch";
 import chokidar from "chokidar";
@@ -83,7 +84,7 @@ describe("Watch Mode", () => {
   });
 
   test("should start watching app/routes directory", async () => {
-    runWatchMode();
+    await runWatchMode();
 
     expect(mockChokidarWatch).toHaveBeenCalledWith("app/routes", {
       ignoreInitial: true,
@@ -95,7 +96,7 @@ describe("Watch Mode", () => {
   });
 
   test("should trigger generation when a file is added", async () => {
-    runWatchMode();
+    await runWatchMode();
 
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {
@@ -116,7 +117,7 @@ describe("Watch Mode", () => {
   });
 
   test("should ignore irrelevant events", async () => {
-    runWatchMode();
+    await runWatchMode();
 
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {
@@ -134,7 +135,7 @@ describe("Watch Mode", () => {
   });
 
   test("should debounce multiple events", async () => {
-    runWatchMode();
+    await runWatchMode();
 
     expect(handlers["all"]).toBeDefined();
     if (isFunction(handlers["all"])) {

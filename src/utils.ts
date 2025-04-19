@@ -1,12 +1,6 @@
+// src/utils.ts
 import fs from "fs";
 import path from "path";
-
-export function detectPackageManager(): "bun" | "yarn" | "npm" | "pnpn" {
-  if (fs.existsSync("bun.lockb")) return "bun";
-  if (fs.existsSync("yarn.lock")) return "yarn";
-  if (fs.existsSync("pnpn.lock")) return "pnpn";
-  return "npm";
-}
 
 export function injectScripts() {
   const pkgPath = path.resolve(process.cwd(), "package.json");
