@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs --dts",
-    "dev": "bun run src/index.ts",
+    "dev": "bun run build --watch",
     "test": "bun test"
   },
   "keywords": [

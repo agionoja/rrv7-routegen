@@ -4,13 +4,13 @@ import { runGeneration } from "./generator";
 import { runWatchMode } from "./watch";
 import { injectScripts } from "./utils";
 
-export { defineConfig } from "./load-config.ts";
+export { routeConfig } from "./load-config.ts";
 
 export function cli() {
   program
-    .option("--route-dir <path>", "Directory to scan for routes", "app/routes")
-    .option("--out-dir <path>", "Output directory", ".routegen")
-    .option("--output-file-name <name>", "Output file name", "route-file.ts");
+    .option("--route-dir <path>", "Directory to scan for routes")
+    .option("--out-dir <path>", "Output directory")
+    .option("--output-file-name <name>", "Output file name");
 
   program
     .command("generate")

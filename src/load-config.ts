@@ -13,7 +13,7 @@ const configSchema = z.object({
 // Define the output type to reflect defaults (no undefined)
 export type ResolvedRoutegenConfig = z.infer<typeof configSchema>;
 
-export function defineConfig(config: RoutegenConfig): RoutegenConfig {
+export function routeConfig(config: RoutegenConfig): RoutegenConfig {
   return config;
 }
 
@@ -21,12 +21,11 @@ export async function loadConfig(
   cliArgs: Partial<RoutegenConfig> = {},
 ): Promise<ResolvedRoutegenConfig> {
   const explorer = cosmiconfig("routegen", {
-    searchPlaces: [".routegenrc.js", ".routegenrc.ts", "package.json"],
-    packageProp: "rrv7Routegen",
+    searchPlaces: ["routegen.config.ts", "routegen.config.js"],
   });
 
   const result = await explorer.search();
-  const fileConfig = result?.config || {};
+  const fileConfig = result?.config?.default || result?.config || {};
 
   // Merge file config with CLI args (CLI takes precedence)
   const mergedConfig = { ...fileConfig, ...cliArgs };

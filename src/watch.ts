@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import path from "path";
 import { loadConfig, type ResolvedRoutegenConfig } from "./load-config";
 
-const RELEVANT = new Set(["add", "addDir", "unlink", "unlinkDir"]);
+const RELEVANT = new Set(["add", "addDir", "change", "unlink", "unlinkDir"]);
 
 export async function runWatchMode(
   cliArgs: Partial<ResolvedRoutegenConfig> = {},
@@ -12,7 +12,7 @@ export async function runWatchMode(
   const config = await loadConfig(cliArgs);
   const ROUTES_DIR = path.resolve(process.cwd(), config.routeDir);
 
-  console.log(`👀 Watching ${ROUTES_DIR} for file add/delete...`);
+  console.log(`👀 Watching ${ROUTES_DIR} for route file changes...`);
   const watcher = chokidar.watch(ROUTES_DIR, {
     ignoreInitial: true,
     persistent: true,

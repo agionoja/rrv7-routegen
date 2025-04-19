@@ -14,8 +14,8 @@ route("/comments", routeFile("comments")); // ✅ Type-safe
 
 - 🗂️ **Automatic Route Detection**: Scans `app/routes` for React Router v7 route modules (with `action`, `loader`, or default component exports).
 - 🛡️ **Type-Safe Helpers**: Generates a `routeFile()` function with a `RouteFilePath` type for compile-time safety.
-- ⚡️ **Watch Mode**: Real-time updates when route files are added or removed.
-- 🔧 **Configurable**: Customize input/output directories and file names via CLI flags or config files (`.routegenrc.js`, `package.json`).
+- ⚡️ **Watch Mode**: Real-time updates when route files are added, modified, or removed.
+- 🔧 **Configurable**: Customize input/output directories and file names via CLI flags or a `routegen.config.ts`/`js` file.
 - 📦 **Zero Config Default**: Works out of the box with sensible defaults.
 - 🔄 **Nested Routes**: Supports nested directory structures with slash notation (e.g., `comments/index.tsx` → `comments/index`).
 - 🧩 **JavaScript & TypeScript**: Compatible with `.js`, `.jsx`, `.ts`, and `.tsx` files.
@@ -115,28 +115,30 @@ bunx rrv7-routegen generate --route-dir src/routes --out-dir generated --output-
 
 ### Configuration File
 
-You can configure the tool via a `.routegenrc.js` (or `.routegenrc.ts`) file or the `rrv7Routegen` field in `package.json`.
+You can configure the tool via a `routegen.config.ts` or `routegen.config.js` file using the `routeConfig` function.
 
-**Example** `.routegenrc.js`**:**
+**Example** `routegen.config.ts`**:**
 
-```javascript
-module.exports = {
+```typescript
+import { routeConfig } from "rrv7-routegen";
+
+export default routeConfig({
   routeDir: "src/routes",
   outDir: "generated",
   outputFileName: "routes.ts",
-};
+});
 ```
 
-**Example** `package.json`**:**
+**Example** `routegen.config.js`**:**
 
-```json
-{
-  "rrv7Routegen": {
-    "routeDir": "src/routes",
-    "outDir": "generated",
-    "outputFileName": "routes.ts"
-  }
-}
+```javascript
+const { routeConfig } = require("rrv7-routegen");
+
+module.exports = routeConfig({
+  routeDir: "src/routes",
+  outDir: "generated",
+  outputFileName: "routes.ts",
+});
 ```
 
 ### Generated Output
@@ -146,19 +148,19 @@ The tool generates a file (e.g., `.routegen/route-file.ts`) with a type-safe hel
 ```typescript
 // AUTO-GENERATED — DO NOT EDIT
 export type RouteFilePath =
-  | "home"
-  | "comments/index"
-  | "comments/details"
-  | "settings";
+        | "home"
+        | "comments/index"
+        | "comments/details"
+        | "settings";
 
 export function routeFile(path: RouteFilePath) {
-  switch (path) {
-    case "home": return "./routes/home.tsx";
-    case "comments/index": return "./routes/comments/index.tsx";
-    case "comments/details": return "./routes/comments/details.tsx";
-    case "settings": return "./routes/settings.tsx";
-    default: throw new Error(`Invalid routeFile: ${path}`);
-  }
+   switch (path) {
+      case "home": return "./routes/home.tsx";
+      case "comments/index": return "./routes/comments/index.tsx";
+      case "comments/details": return "./routes/comments/details.tsx";
+      case "settings": return "./routes/settings.tsx";
+      default: throw new Error(`Invalid routeFile: ${path}`);
+   }
 }
 ```
 
@@ -172,21 +174,21 @@ import { routeFile } from ".routegen/route-file";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
-  {
-    path: "/",
-    element: routeFile("home"),
-  },
-  {
-    path: "/comments",
-    children: [
-      { index: true, element: routeFile("comments/index") },
-      { path: ":id", element: routeFile("comments/details") },
-    ],
-  },
-  {
-    path: "/settings",
-    element: routeFile("settings"),
-  },
+   {
+      path: "/",
+      element: routeFile("home"),
+   },
+   {
+      path: "/comments",
+      children: [
+         { index: true, element: routeFile("comments/index") },
+         { path: ":id", element: routeFile("comments/details") },
+      ],
+   },
+   {
+      path: "/settings",
+      element: routeFile("settings"),
+   },
 ]);
 ```
 
